@@ -4,7 +4,6 @@ namespace Venturecraft\Revisionable;
 
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model as Eloquent;
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -130,7 +129,7 @@ class Revision extends Eloquent
         $which_value = $which . '_value';
 
         // First find the main model that was updated
-        $main_model = $this->getRelatedModel();
+        $main_model = $this->getActualClassNameForMorph($this->revisionable_type);
 
         // Load it, WITH the related model
         if (class_exists($main_model)) {
@@ -259,7 +258,7 @@ class Revision extends Eloquent
      */
     public function historyOf()
     {
-        if (class_exists($class = $this->getRelatedModel())) {
+        if (class_exists($class = $this->getActualClassNameForMorph($this->revisionable_type))) {
             return $class::find($this->revisionable_id);
         }
 
@@ -292,24 +291,5 @@ class Revision extends Eloquent
         } else {
             return $value;
         }
-    }
-
-
-    /**
-     * Get the main model for the revision
-     *
-     * @return null
-     */
-    public function getRelatedModel()
-    {
-        $morphMap = Relation::morphMap();
-
-        if (! empty($morphMap) && key_exists($this->revisionable_type, $morphMap)) {
-            $model = $morphMap[$this->revisionable_type];
-        }else {
-            $model = $this->revisionable_type;
-        }
-
-        return $model;
     }
 }
