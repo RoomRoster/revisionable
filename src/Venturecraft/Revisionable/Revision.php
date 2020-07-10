@@ -2,6 +2,7 @@
 
 namespace Venturecraft\Revisionable;
 
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Log;
@@ -77,7 +78,7 @@ class Revision extends Eloquent
      */
     private function formatFieldName($key)
     {
-        $related_model = $this->getRelatedModel();
+        $related_model = $this->getActualClassNameForMorph($this->revisionable_type);
         $related_model = new $related_model;
         $revisionFormattedFieldNames = $related_model->getRevisionFormattedFieldNames();
 
@@ -136,14 +137,14 @@ class Revision extends Eloquent
             $main_model = new $main_model;
 
             try {
-                if (strpos($this->key, '_id')) {
-                    $related_model = str_replace('_id', '', $this->key);
+                if ($this->isRelated()) {
+                    $related_model = $this->getRelatedModel();
 
                     // Now we can find out the namespace of of related model
                     if (!method_exists($main_model, $related_model)) {
                         $related_model = Str::camel($related_model); // for cases like published_status_id
                         if (!method_exists($main_model, $related_model)) {
-                            throw new \Exception('Relation ' . $related_model . ' does not exist for ' . $main_model);
+                            throw new \Exception('Relation ' . $related_model . ' does not exist for ' . get_class($main_model));
                         }
                     }
                     $related_class = $main_model->$related_model()->getRelated();
@@ -163,19 +164,20 @@ class Revision extends Eloquent
                         return $this->format($this->key, $item->getRevisionUnknownString());
                     }
 
+                    // Check if model use RevisionableTrait
+                    if(method_exists($item, 'identifiableName')) {
+                        // see if there's an available mutator
+                        $mutator = 'get' . Str::studly($this->key) . 'Attribute';
+                        if (method_exists($item, $mutator)) {
+                            return $this->format($item->$mutator($this->key), $item->identifiableName());
+                        }
 
-                    // see if there's an available mutator
-                    $mutator = 'get' . Str::studly($this->key) . 'Attribute';
-                    if (method_exists($item, $mutator)) {
-                        return $this->format($item->$mutator($this->key), $item->identifiableName());
+                        return $this->format($this->key, $item->identifiableName());
                     }
-
-                    return $this->format($this->key, $item->identifiableName());
                 }
             } catch (\Exception $e) {
                 // Just a fail-safe, in the case the data setup isn't as expected
                 // Nothing to do here.
-                Log::info('Revisionable: ' . $e);
             }
 
             // if there was an issue
@@ -188,6 +190,38 @@ class Revision extends Eloquent
         }
 
         return $this->format($this->key, $this->$which_value);
+    }
+
+    /**
+     * Return true if the key is for a related model.
+     *
+     * @return bool
+     */
+    private function isRelated()
+    {
+        $isRelated = false;
+        $idSuffix = '_id';
+        $pos = strrpos($this->key, $idSuffix);
+
+        if ($pos !== false
+            && strlen($this->key) - strlen($idSuffix) === $pos
+        ) {
+            $isRelated = true;
+        }
+
+        return $isRelated;
+    }
+
+    /**
+     * Return the name of the related model.
+     *
+     * @return string
+     */
+    private function getRelatedModel()
+    {
+        $idSuffix = '_id';
+
+        return substr($this->key, 0, strlen($this->key) - strlen($idSuffix));
     }
 
     /**
@@ -249,7 +283,7 @@ class Revision extends Eloquent
      */
     public function format($key, $value)
     {
-        $related_model = $this->getRelatedModel();
+        $related_model = $this->getActualClassNameForMorph($this->revisionable_type);
         $related_model = new $related_model;
         $revisionFormattedFields = $related_model->getRevisionFormattedFields();
 
