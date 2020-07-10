@@ -4,7 +4,6 @@ namespace Venturecraft\Revisionable;
 
 use Illuminate\Support\Arr;
 use Illuminate\Database\Eloquent\Model as Eloquent;
-use Illuminate\Support\Arr;
 
 /*
  * This file is part of the Revisionable package by Venture Craft
