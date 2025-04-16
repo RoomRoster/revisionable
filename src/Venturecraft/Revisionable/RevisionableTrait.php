@@ -135,7 +135,7 @@ trait RevisionableTrait
 
                     $this->updatedData[$key] = json_encode($updatedData);
                     $this->originalData[$key] = json_encode(json_decode($this->originalData[$key], true));
-                } else if (gettype($val) == 'object' && !method_exists($val, '__toString')) {
+                } elseif (gettype($val) == 'object' && !method_exists($val, '__toString')) {
                     unset($this->originalData[$key]);
                     unset($this->updatedData[$key]);
                     array_push($this->dontKeep, $key);
@@ -173,10 +173,10 @@ trait RevisionableTrait
         } else {
             $LimitReached = false;
         }
-        if (isset($this->revisionCleanup)){
-            $RevisionCleanup=$this->revisionCleanup;
-        }else{
-            $RevisionCleanup=false;
+        if (isset($this->revisionCleanup)) {
+            $RevisionCleanup = $this->revisionCleanup;
+        } else {
+            $RevisionCleanup = false;
         }
 
         // check if the model already exists
@@ -195,15 +195,16 @@ trait RevisionableTrait
                     'old_value' => Arr::get($this->originalData, $key),
                     'new_value' => $this->updatedData[$key],
                     'user_id' => $this->getSystemUserId(),
+                    'ip' => $_SERVER["REMOTE_ADDR"],
                     'created_at' => new \DateTime(),
                     'updated_at' => new \DateTime(),
                 );
             }
 
             if (count($revisions) > 0) {
-                if($LimitReached && $RevisionCleanup){
-                    $toDelete = $this->revisionHistory()->orderBy('id','asc')->limit(count($revisions))->get();
-                    foreach($toDelete as $delete){
+                if ($LimitReached && $RevisionCleanup) {
+                    $toDelete = $this->revisionHistory()->orderBy('id', 'asc')->limit(count($revisions))->get();
+                    foreach ($toDelete as $delete) {
                         $delete->delete();
                     }
                 }
@@ -222,14 +223,12 @@ trait RevisionableTrait
 
         // Check if we should store creations in our revision history
         // Set this value to true in your model if you want to
-        if(empty($this->revisionCreationsEnabled))
-        {
+        if (empty($this->revisionCreationsEnabled)) {
             // We should not store creations.
             return false;
         }
 
-        if ((!isset($this->revisionEnabled) || $this->revisionEnabled))
-        {
+        if ((!isset($this->revisionEnabled) || $this->revisionEnabled)) {
             $revisions[] = array(
                 'revisionable_type' => $this->getMorphClass(),
                 'revisionable_id' => $this->getKey(),
@@ -237,6 +236,7 @@ trait RevisionableTrait
                 'old_value' => null,
                 'new_value' => $this->{self::CREATED_AT},
                 'user_id' => $this->getSystemUserId(),
+                'ip' => $_SERVER["REMOTE_ADDR"],
                 'created_at' => new \DateTime(),
                 'updated_at' => new \DateTime(),
             );
@@ -264,6 +264,7 @@ trait RevisionableTrait
                 'old_value' => null,
                 'new_value' => $this->{$this->getDeletedAtColumn()},
                 'user_id' => $this->getSystemUserId(),
+                'ip' => $_SERVER["REMOTE_ADDR"],
                 'created_at' => new \DateTime(),
                 'updated_at' => new \DateTime(),
             );
@@ -463,10 +464,12 @@ trait RevisionableTrait
      */
     private function sortJsonKeys($attribute)
     {
-        if(empty($attribute)) return $attribute;
+        if (empty($attribute)) {
+            return $attribute;
+        }
 
-        foreach ($attribute as $key=>$value) {
-            if(is_array($value) || is_object($value)){
+        foreach ($attribute as $key => $value) {
+            if (is_array($value) || is_object($value)) {
                 $value = $this->sortJsonKeys($value);
             } else {
                 continue;
