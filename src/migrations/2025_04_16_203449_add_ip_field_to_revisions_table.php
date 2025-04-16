@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddIPField extends Migration
+class AddIPFieldToRevisionsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -14,7 +14,7 @@ class AddIPField extends Migration
     public function up()
     {
         Schema::table('revisions', function ($table) {
-            $table->string('ip')->nullable();
+            $table->ipAddress('ip')->nullable();
         });
     }
 
