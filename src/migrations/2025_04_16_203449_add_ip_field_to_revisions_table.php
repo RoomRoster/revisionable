@@ -14,7 +14,7 @@ class AddIPFieldToRevisionsTable extends Migration
     public function up()
     {
         Schema::table('revisions', function ($table) {
-            $table->ipAddress('ip')->nullable();
+            $table->ipAddress('ip')->nullable()->after('new_value');
         });
     }
 
