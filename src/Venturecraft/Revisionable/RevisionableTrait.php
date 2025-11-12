@@ -197,7 +197,6 @@ trait RevisionableTrait
                     'old_value' => Arr::get($this->originalData, $key),
                     'new_value' => $this->updatedData[$key],
                     'user_id' => $this->getSystemUserId(),
-                    'ip' => request()->getClientIp(),
                     'created_at' => new \DateTime(),
                     'updated_at' => new \DateTime(),
                 );
@@ -240,7 +239,6 @@ trait RevisionableTrait
                 'old_value' => null,
                 'new_value' => $this->{self::CREATED_AT},
                 'user_id' => $this->getSystemUserId(),
-                'ip' => request()->getClientIp(),
                 'created_at' => new \DateTime(),
                 'updated_at' => new \DateTime(),
             );
@@ -272,7 +270,6 @@ trait RevisionableTrait
                 'old_value' => null,
                 'new_value' => $this->{$this->getDeletedAtColumn()},
                 'user_id' => $this->getSystemUserId(),
-                'ip' => request()->getClientIp(),
                 'created_at' => new \DateTime(),
                 'updated_at' => new \DateTime(),
             );
@@ -344,7 +341,10 @@ trait RevisionableTrait
 
     public function getAdditionalFields()
     {
-        $additional = [];
+        $additional = [
+            'ip' => request()->getClientIp(),
+        ];
+
         //Determine if there are any additional fields we'd like to add to our model contained in the config file, and
         //get them into an array.
         $fields = config('revisionable.additional_fields', []);
