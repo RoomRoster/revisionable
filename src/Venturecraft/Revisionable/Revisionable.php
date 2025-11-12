@@ -77,6 +77,7 @@ class Revisionable extends Eloquent
             $model->postForceDelete();
         });
     }
+
     /**
      * Instance the revision model
      * @return \Illuminate\Database\Eloquent\Model
@@ -179,8 +180,8 @@ class Revisionable extends Eloquent
     }
 
     /**
-    * Called after record successfully created
-    */
+     * Called after record successfully created
+     */
     public function postCreate()
     {
 
@@ -254,6 +255,7 @@ class Revisionable extends Eloquent
                 'old_value' => $this->{self::CREATED_AT},
                 'new_value' => null,
                 'user_id' => $this->getSystemUserId(),
+                'ip' => request()->getClientIp(),
                 'created_at' => new \DateTime(),
                 'updated_at' => new \DateTime(),
             );
@@ -267,7 +269,7 @@ class Revisionable extends Eloquent
     /**
      * Attempt to find the user id of the currently logged in user
      * Supports Cartalyst Sentry/Sentinel based authentication, as well as stock Auth
-     **/
+     */
     private function getSystemUserId()
     {
         try {

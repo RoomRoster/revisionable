@@ -113,10 +113,10 @@ trait RevisionableTrait
     }
 
     /**
-    * Invoked before a model is saved. Return false to abort the operation.
-    *
-    * @return bool
-    */
+     * Invoked before a model is saved. Return false to abort the operation.
+     *
+     * @return bool
+     */
     public function preSave()
     {
         if (!isset($this->revisionEnabled) || $this->revisionEnabled) {
@@ -219,8 +219,8 @@ trait RevisionableTrait
     }
 
     /**
-    * Called after record successfully created
-    */
+     * Called after record successfully created
+     */
     public function postCreate()
     {
 
@@ -317,7 +317,7 @@ trait RevisionableTrait
     /**
      * Attempt to find the user id of the currently logged in user
      * Supports Cartalyst Sentry/Sentinel based authentication, as well as stock Auth
-     **/
+     */
     public function getSystemUserId()
     {
         try {
