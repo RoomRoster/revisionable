@@ -77,6 +77,7 @@ class Revisionable extends Eloquent
             $model->postForceDelete();
         });
     }
+
     /**
      * Instance the revision model
      * @return \Illuminate\Database\Eloquent\Model
@@ -165,6 +166,7 @@ class Revisionable extends Eloquent
                     'old_value'             => Arr::get($this->originalData, $key),
                     'new_value'             => $this->updatedData[$key],
                     'user_id'               => $this->getSystemUserId(),
+                    'ip'                    => request()->getClientIp(),
                     'created_at'            => new \DateTime(),
                     'updated_at'            => new \DateTime(),
                 );
@@ -178,21 +180,19 @@ class Revisionable extends Eloquent
     }
 
     /**
-    * Called after record successfully created
-    */
+     * Called after record successfully created
+     */
     public function postCreate()
     {
 
         // Check if we should store creations in our revision history
         // Set this value to true in your model if you want to
-        if(empty($this->revisionCreationsEnabled))
-        {
+        if (empty($this->revisionCreationsEnabled)) {
             // We should not store creations.
             return false;
         }
 
-        if ((!isset($this->revisionEnabled) || $this->revisionEnabled))
-        {
+        if ((!isset($this->revisionEnabled) || $this->revisionEnabled)) {
             $revisions[] = array(
                 'revisionable_type' => $this->getMorphClass(),
                 'revisionable_id' => $this->getKey(),
@@ -200,6 +200,7 @@ class Revisionable extends Eloquent
                 'old_value' => null,
                 'new_value' => $this->{self::CREATED_AT},
                 'user_id' => $this->getSystemUserId(),
+                'ip' => request()->getClientIp(),
                 'created_at' => new \DateTime(),
                 'updated_at' => new \DateTime(),
             );
@@ -224,6 +225,7 @@ class Revisionable extends Eloquent
                 'old_value' => null,
                 'new_value' => $this->{$this->getDeletedAtColumn()},
                 'user_id' => $this->getSystemUserId(),
+                'ip' => request()->getClientIp(),
                 'created_at' => new \DateTime(),
                 'updated_at' => new \DateTime(),
             );
@@ -253,6 +255,7 @@ class Revisionable extends Eloquent
                 'old_value' => $this->{self::CREATED_AT},
                 'new_value' => null,
                 'user_id' => $this->getSystemUserId(),
+                'ip' => request()->getClientIp(),
                 'created_at' => new \DateTime(),
                 'updated_at' => new \DateTime(),
             );
@@ -266,7 +269,7 @@ class Revisionable extends Eloquent
     /**
      * Attempt to find the user id of the currently logged in user
      * Supports Cartalyst Sentry/Sentinel based authentication, as well as stock Auth
-     **/
+     */
     private function getSystemUserId()
     {
         try {
@@ -396,7 +399,7 @@ class Revisionable extends Eloquent
      */
     public function getRevisionNullString()
     {
-        return isset($this->revisionNullString)?$this->revisionNullString:'nothing';
+        return isset($this->revisionNullString) ? $this->revisionNullString : 'nothing';
     }
 
     /**
@@ -409,7 +412,7 @@ class Revisionable extends Eloquent
      */
     public function getRevisionUnknownString()
     {
-        return isset($this->revisionUnknownString)?$this->revisionUnknownString:'unknown';
+        return isset($this->revisionUnknownString) ? $this->revisionUnknownString : 'unknown';
     }
 
     /**
